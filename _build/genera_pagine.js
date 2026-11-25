@@ -2,11 +2,12 @@
 // Usage: node _build/genera_pagine.js   → writes index.html, characters.html, parents.html, contact.html, privacy.html, 404.html
 const fs = require('fs'), path = require('path');
 const SITE = path.resolve(__dirname, '..');
-const YT_CHANNEL = 'https://www.youtube.com/@tinyroarkids';
+const YT_CHANNEL = 'https://www.youtube.com/@leoandthedinos';
 const EP001_YOUTUBE_ID = ''; // ← paste the YouTube video id of EP001 here once it is published (then rerun this script)
 const EMAIL = 'info@tinyroarkids.com';
 const TITLE = 'Tiny Roar Studio – Leo and the Dinos';
-const DESC = 'Gentle animated stories for children aged 3–8. Leo the T-rex and his dinosaur friends explore friendship, feelings and learning in a colorful world made of blocks.';
+const DESC = 'Calm dinosaur stories for kids aged 3–8. Leo the T-Rex and his dino friends learn colors, numbers and friendship in a little world of blocks.';
+const BASE = 'https://tinyroarkids.com/';
 
 const toy = t => `<span class="toy">${[...t].map((c, i) => c === ' ' ? ' ' : `<span class="c${(i % 7) + 1}">${c}</span>`).join('')}</span>`;
 const NAV = [['index.html', 'Home'], ['characters.html', 'Meet the Dinos'], ['parents.html', 'For Parents'], ['contact.html', 'Contact']];
@@ -19,7 +20,9 @@ const page = (file, title, body, desc = DESC) => `<!doctype html>
 <meta name="description" content="${desc}">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${desc}">
-<meta property="og:image" content="assets/img/og_image.jpg">
+<link rel="canonical" href="${BASE}${file === 'index.html' ? '' : file}">
+<meta property="og:url" content="${BASE}${file === 'index.html' ? '' : file}">
+<meta property="og:image" content="${BASE}assets/img/og_image.jpg">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#4A2A6B">
 <link rel="icon" href="assets/img/icon-32.png" sizes="32x32">
@@ -159,6 +162,7 @@ const privacy = page('privacy.html', 'Privacy – Tiny Roar Studio', `
 <section class="section">
   <div class="wrap"><h1>Privacy</h1>
     <p class="lead">This website does not use profiling or advertising cookies and does not collect personal data from visitors. Videos are embedded in YouTube's privacy-enhanced mode and load only when you click play. If you write to us by email, we use your address only to reply.</p>
+    <p>The website is hosted on GitHub Pages. Like every web server, GitHub may log visitors' IP addresses for security reasons. See the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub Privacy Statement</a>.</p>
     <p>Data controller: Tiny Roar Studio – <a href="mailto:${EMAIL}">${EMAIL}</a></p>
   </div>
 </section>`);
@@ -173,3 +177,12 @@ const notFound = page('404.html', 'Page not found – Tiny Roar Studio', `
 for (const [f, html] of [['index.html', index], ['characters.html', characters], ['parents.html', parents], ['contact.html', contact], ['privacy.html', privacy], ['404.html', notFound]]) {
   fs.writeFileSync(path.join(SITE, f), html); console.log('OK', f);
 }
+const today = new Date().toISOString().slice(0, 10);
+const urls = ['', 'characters.html', 'parents.html', 'contact.html', 'privacy.html'];
+fs.writeFileSync(path.join(SITE, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url><loc>${BASE}${u}</loc><lastmod>${today}</lastmod></url>`).join('\n')}
+</urlset>
+`);
+fs.writeFileSync(path.join(SITE, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${BASE}sitemap.xml\n`);
+console.log('OK sitemap.xml, robots.txt');
